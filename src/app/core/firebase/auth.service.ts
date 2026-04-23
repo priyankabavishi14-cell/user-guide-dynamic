@@ -4,7 +4,10 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   signOut, 
-  User 
+  User,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { auth } from './firebase.config';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -35,6 +38,16 @@ export class AuthService {
   async login() {
     const provider = new GoogleAuthProvider();
     return signInWithPopup(auth, provider);
+  }
+
+  async loginWithEmail(email: string, pass: string) {
+    return signInWithEmailAndPassword(auth, email, pass);
+  }
+
+  async signupWithEmail(email: string, pass: string, name: string) {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    return cred;
   }
 
   async logout() {
