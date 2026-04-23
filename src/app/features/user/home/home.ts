@@ -15,12 +15,12 @@ import { MatIconModule } from '@angular/material/icon';
           <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
             <mat-icon class="text-white scale-75">book</mat-icon>
           </div>
-          <span class="font-bold text-xl tracking-tight text-slate-900">Guide<span class="text-indigo-600">Manager</span></span>
+          <span class="font-bold text-xl tracking-tight text-slate-900 uppercase">Manage<span class="text-indigo-600">Console</span></span>
         </a>
         
-        <a routerLink="/admin" class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all shadow-md">
-          <mat-icon class="text-lg">admin_panel_settings</mat-icon>
-          Admin Console
+        <a routerLink="/admin" class="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 group">
+          <mat-icon class="text-lg group-hover:rotate-12 transition-transform">admin_panel_settings</mat-icon>
+          Go to Admin Console
         </a>
       </nav>
 

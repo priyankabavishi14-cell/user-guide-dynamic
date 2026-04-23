@@ -25,9 +25,8 @@ export class AuthService {
   constructor() {
     onAuthStateChanged(auth, (user: User | null) => {
       this.userSub.next(user);
-      if (user) {
-        this.projectService.initDefaultProject(user.uid);
-      }
+      // Still init project with a stable ID even if not logged in to Firebase
+      this.projectService.initDefaultProject(user?.uid || 'guest-admin');
     });
   }
 
@@ -38,16 +37,6 @@ export class AuthService {
   async login() {
     const provider = new GoogleAuthProvider();
     return signInWithPopup(auth, provider);
-  }
-
-  async loginWithEmail(email: string, pass: string) {
-    return signInWithEmailAndPassword(auth, email, pass);
-  }
-
-  async signupWithEmail(email: string, pass: string, name: string) {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await updateProfile(cred.user, { displayName: name });
-    return cred;
   }
 
   async logout() {
