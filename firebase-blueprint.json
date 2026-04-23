@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Documentation Project",
+      "description": "Groups a set of guide pages for a specific application or product.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "slug": { "type": "string" },
+        "frontendUrl": { "type": "string", "description": "Custom URL for the guide frontend (e.g. appsync.web.guide)" },
+        "backendUrl": { "type": "string", "description": "Custom URL for the guide admin (e.g. appsync.web.admin)" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["title", "slug", "updatedAt"]
+    },
+    "Page": {
+      "title": "User Guide Page",
+      "description": "A page in the user guide hierarchy containing markdown content.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string", "description": "The ID of the project this page belongs to." },
+        "title": {
+          "type": "string",
+          "description": "The title of the page."
+        },
+        "sequence": {
+          "type": "integer",
+          "description": "The display order of the page."
+        },
+        "parentId": {
+          "type": "string",
+          "description": "The ID of the parent page (null for top-level pages)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short summary of the page."
+        },
+        "content": {
+          "type": "string",
+          "description": "The markdown content of the page."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the last update."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "The UID of the user who created the page."
+        }
+      },
+      "required": ["projectId", "title", "sequence", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collection of documentation projects."
+    },
+    "/pages/{pageId}": {
+      "schema": "Page",
+      "description": "Collection of all guide pages."
+    }
+  }
+}
