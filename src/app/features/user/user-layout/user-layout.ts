@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { PageService } from '../../../core/firebase/page.service';
 import { ProjectService } from '../../../core/firebase/project.service';
-import { map, switchMap, combineLatest, of } from 'rxjs';
+import { map, switchMap, combineLatest, of, tap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Page, PageNode, Project } from '../../../core/models/page.model';
 
 @Component({
@@ -24,19 +25,17 @@ import { Page, PageNode, Project } from '../../../core/models/page.model';
             </div>
             <span class="font-bold text-xl tracking-tight">GuideManager</span>
           </a>
-          @if (currentProject$ | async; as project) {
+          @if (project(); as projectData) {
             <div class="h-6 w-px bg-slate-200 mx-2"></div>
-            <span class="text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100 text-sm">
-              {{ project.title }}
+            <span class="text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100 text-sm animate-in fade-in">
+              {{ projectData.title }}
             </span>
+          } @else if (projectLoading()) {
+            <div class="h-6 w-32 bg-slate-50 rounded-lg animate-pulse ml-4"></div>
           }
         </div>
         
         <div class="flex items-center gap-4">
-          <a routerLink="/admin" class="text-sm font-medium text-slate-600 hover:text-indigo-600 flex items-center gap-1">
-            <mat-icon class="text-lg">admin_panel_settings</mat-icon>
-            Admin Panel
-          </a>
         </div>
       </header>
 
@@ -49,20 +48,20 @@ import { Page, PageNode, Project } from '../../../core/models/page.model';
         >
           <div class="p-4">
             <nav class="space-y-1">
-              @if (tree$ | async; as nodes) {
-                <ng-container *ngTemplateOutlet="nodeTemplate; context: { $implicit: nodes, project: (currentProject$ | async) }"></ng-container>
+              @if (projectLoading()) {
+                <div class="space-y-4 animate-pulse px-2">
+                  <div class="h-4 bg-slate-100 rounded w-3/4"></div>
+                  <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+                  <div class="h-4 bg-slate-100 rounded w-2/3"></div>
+                </div>
+              } @else if (tree$ | async; as nodes) {
+                <ng-container *ngTemplateOutlet="nodeTemplate; context: { $implicit: nodes, project: project() }"></ng-container>
                 @if (nodes.length === 0) {
                   <div class="p-4 text-center">
                     <mat-icon class="text-slate-200 scale-150 mb-2">library_books</mat-icon>
                     <p class="text-xs text-slate-400 font-medium">This project has no documentation yet.</p>
                   </div>
                 }
-              } @else {
-                <div class="space-y-4 animate-pulse px-2">
-                  <div class="h-4 bg-slate-100 rounded w-3/4"></div>
-                  <div class="h-4 bg-slate-100 rounded w-1/2"></div>
-                  <div class="h-4 bg-slate-100 rounded w-2/3"></div>
-                </div>
               }
             </nav>
           </div>
@@ -132,21 +131,27 @@ export class UserLayout {
   private route = inject(ActivatedRoute);
   
   isSidebarOpen = signal(false);
+  projectLoading = signal(true);
 
-  currentProject$ = this.route.params.pipe(
+  project = toSignal(this.route.params.pipe(
     switchMap(params => {
       const slug = params['projectSlug'];
       if (slug) {
-        return this.projectService.getProjectBySlug(slug);
+        this.projectLoading.set(true);
+        return this.projectService.getProjectBySlug(slug).pipe(
+          tap(() => this.projectLoading.set(false))
+        );
       }
+      this.projectLoading.set(false);
       return of(null);
     })
-  );
+  ));
 
-  tree$ = this.currentProject$.pipe(
-    switchMap(project => {
-      if (!project) return of([]);
-      return this.pageService.getPages(project.id).pipe(
+  tree$ = this.route.params.pipe(
+    switchMap(() => {
+      const p = this.project();
+      if (!p) return of([]);
+      return this.pageService.getPages(p.id).pipe(
         map(pages => this.buildTree(pages))
       );
     })

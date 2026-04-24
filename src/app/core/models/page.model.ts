@@ -5,6 +5,7 @@ export interface Project {
   slug: string;
   frontendUrl?: string;
   backendUrl?: string;
+  hideWelcomePage?: boolean;
   updatedAt: { toDate: () => Date; seconds: number } | null;
   createdBy: string;
 }

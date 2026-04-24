@@ -58,10 +58,10 @@ import { ProjectService } from '../../../core/firebase/project.service';
                 <mat-icon>logout</mat-icon>
               </button>
             </div>
-          } @else {
-             <button (click)="login()" class="px-4 py-2 text-slate-400 hover:text-indigo-600 transition-all flex items-center gap-2 text-sm font-semibold">
+          } @else if ((auth.user$ | async) === null) {
+             <button (click)="login()" class="px-4 py-2 text-slate-400 hover:text-indigo-600 transition-all flex items-center gap-2 text-sm font-semibold animate-in fade-in duration-300">
                 <mat-icon class="text-lg">login</mat-icon>
-                Optional Sign In
+                Admin Login
              </button>
           }
         </div>

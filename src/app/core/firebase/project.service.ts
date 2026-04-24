@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { db } from './firebase.config';
 import { Project } from '../models/page.model';
 import { 
@@ -13,13 +13,15 @@ import {
   serverTimestamp as fsServerTimestamp,
   getDoc
 } from 'firebase/firestore';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, from, map, firstValueFrom, take } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { PageService } from './page.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
+  private pageService = inject(PageService);
   private projectsCollection = fsCollection(db, 'projects');
   private currentProjectSub = new BehaviorSubject<Project | null>(null);
   currentProject$ = this.currentProjectSub.asObservable();
@@ -38,14 +40,16 @@ export class ProjectService {
     });
   }
 
-  async getProjectBySlug(slug: string): Promise<Project | null> {
-    // Note: In a real app we'd use a query, but since slug is often the ID here...
+  getProjectBySlug(slug: string): Observable<Project | null> {
     const docRef = fsDoc(db, 'projects', slug);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as Project;
-    }
-    return null;
+    return from(getDoc(docRef)).pipe(
+      map(docSnap => {
+        if (docSnap.exists()) {
+          return { id: docSnap.id, ...docSnap.data() } as Project;
+        }
+        return null;
+      })
+    );
   }
 
   async createProject(project: Omit<Project, 'id' | 'updatedAt'>): Promise<void> {
@@ -88,12 +92,24 @@ export class ProjectService {
         title: 'Sellsync Website',
         description: 'Documentation for Sellsync website frontend & backend',
         slug: defaultSlug,
+        createdBy: userId,
+        hideWelcomePage: false
+      });
+
+      // Create an initial page
+      await this.pageService.createPage({
+        projectId: defaultSlug,
+        title: 'Welcome to the SellSync Website Guide - Getting started',
+        sequence: 0,
+        parentId: null,
+        description: 'Getting started with Sellsync Website.',
+        content: '# Getting Started\n\nWelcome to the Sellsync Website Guide. Use this documentation to understand our frontend and backend architecture.',
         createdBy: userId
       });
     }
     
     const savedId = localStorage.getItem('selectedProjectId') || defaultSlug;
-    const project = await this.getProjectBySlug(savedId);
+    const project = await firstValueFrom(this.getProjectBySlug(savedId));
     this.setCurrentProject(project);
   }
 }

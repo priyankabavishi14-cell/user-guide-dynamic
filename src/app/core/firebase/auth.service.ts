@@ -19,8 +19,8 @@ import { inject } from '@angular/core';
 })
 export class AuthService {
   private projectService = inject(ProjectService);
-  private userSub = new BehaviorSubject<User | null>(null);
-  user$: Observable<User | null> = this.userSub.asObservable();
+  private userSub = new BehaviorSubject<User | null | undefined>(undefined);
+  user$: Observable<User | null | undefined> = this.userSub.asObservable();
 
   constructor() {
     onAuthStateChanged(auth, (user: User | null) => {
